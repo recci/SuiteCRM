@@ -35,7 +35,6 @@
  * reasonably feasible for  technical reasons, the Appropriate Legal Notices must
  * display the words  "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  ********************************************************************************/
-
 buildEditField();
 
 //Global Variables.
@@ -118,20 +117,39 @@ function buildEditField(){
             var id = $(this).closest('tr').find('[type=checkbox]').attr( "value" );
         }
 
+
         //If we find all the required variables to do inline editing.
         if(field && id && module){
 
-            //Do ajax call to retrieve the validation for the field.
-            var validation = getValidationRules(field,module,id);
-            //Do ajax call to retrieve the html elements of the field.
-            var html = loadFieldHTML(field,module,id);
+            var address_fields = [];
 
+            if(field == 'billing_address_street'){
+                $(this).find("input[type='hidden']").each(function(){
+                    address_fields.push($(this).attr( "id" ));
+                });
+            }
+            else {
+                address_fields.push(field);
+            }
+
+
+            var content = [];
+            var i;
+            for (i = 0; i < address_fields.length; ++i) {
+
+                //Do ajax call to retrieve the validation for the field.
+                var validation = getValidationRules(address_fields[i], module, id);
+                //Do ajax call to retrieve the html elements of the field.
+                var html = loadFieldHTML(address_fields[i], module, id);
+
+                content += validation + html + '<br />';
+            }
             //If we have the field html append it to the div we clicked.
-            if(html){
-                $(this).html(validation + "<form name='EditView' id='EditView'><div id='inline_edit_field'>" + html + "</div><a id='inlineEditSaveButton'></a></form>");
+            if (content) {
+                $(this).html(validation + "<form name='EditView' id='EditView'><div id='inline_edit_field'>" + content + "</div><a id='inlineEditSaveButton'></a></form>");
                 $("#inlineEditSaveButton").load(inlineEditSaveButtonImg);
                 //If the field is a relate field we will need to retrieve the extra js required to make the field work.
-                if(type == "relate" || type == "parent") {
+                if (type == "relate" || type == "parent") {
                     var relate_js = getRelateFieldJS(field, module, id);
                     $(this).append(relate_js);
                     SUGAR.util.evalScript($(this).html());
@@ -144,7 +162,7 @@ function buildEditField(){
 
                 //Put the cursor in the field if possible.
                 $("#" + field).focus();
-                if(type == "name" || type == "text") {
+                if (type == "name" || type == "text") {
                     // move focus to end of text (multiply by 2 to make absolute certain its end as some browsers count carriage return as more than 1 character)
                     var strLength = $("#" + field).val().length * 2;
                     $("#" + field)[0].setSelectionRange(strLength, strLength);
@@ -154,12 +172,13 @@ function buildEditField(){
                 $(".inlineEdit").off('dblclick');
 
                 //Call the click away function to handle if the user has clicked off the field, if they have it will close the form.
-                clickedawayclose(field,id,module, type);
+                clickedawayclose(field, id, module, type);
 
                 //Make sure the data is valid and save the details to the bean.
-                validateFormAndSave(field,id,module,type);
+                validateFormAndSave(address_fields, id, module, type);
 
             }
+
         }
 
     });
@@ -172,11 +191,16 @@ function buildEditField(){
  * @param module - the module we are editing
  * @param type - the type of the field we are editing.
  */
-function validateFormAndSave(field,id,module,type){
+function validateFormAndSave(fields,id,module,type){
     $("#inlineEditSaveButton").on('click', function () {
         var valid_form = check_form("EditView");
         if(valid_form){
-            handleSave(field, id, module, type)
+            var i = 0;
+            for (i = 0; i < fields.length; ++i) {
+                handleSave(fields[i], id, module, type)
+            }
+
+
             $(document).off('click');
         }else{
             return false
