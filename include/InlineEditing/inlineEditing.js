@@ -122,8 +122,10 @@ function buildEditField(){
         if(field && id && module){
 
             var address_fields = [];
+            var address_block = false;
 
             if(field == 'billing_address_street'){
+                address_block = true;
                 $(this).find("input[type='hidden']").each(function(){
                     address_fields.push($(this).attr( "id" ));
                 });
@@ -131,7 +133,6 @@ function buildEditField(){
             else {
                 address_fields.push(field);
             }
-
 
             var content = [];
             var i;
@@ -175,7 +176,7 @@ function buildEditField(){
                 clickedawayclose(field, id, module, type);
 
                 //Make sure the data is valid and save the details to the bean.
-                validateFormAndSave(address_fields, id, module, type);
+                validateFormAndSave(address_fields, id, module, type, address_block);
 
             }
 
@@ -191,13 +192,13 @@ function buildEditField(){
  * @param module - the module we are editing
  * @param type - the type of the field we are editing.
  */
-function validateFormAndSave(fields,id,module,type){
+function validateFormAndSave(fields,id,module,type,address_block){
     $("#inlineEditSaveButton").on('click', function () {
         var valid_form = check_form("EditView");
         if(valid_form){
             var i = 0;
             for (i = 0; i < fields.length; ++i) {
-                handleSave(fields[i], id, module, type)
+                handleSave(fields[i], id, module, type, address_block)
             }
 
 
@@ -353,7 +354,7 @@ function getInputValue(field,type){
  * @param type - the type of the field we are editing.
  */
 
-function handleSave(field,id,module,type){
+function handleSave(field,id,module,type,address_block){
     var value = getInputValue(field,type);
     var parent_type = "";
     if(typeof value === "undefined"){
@@ -365,7 +366,7 @@ function handleSave(field,id,module,type){
     }
 
 
-    var output_value = saveFieldHTML(field,module,id,value, parent_type);
+    var output_value = saveFieldHTML(field,module,id,value, parent_type, address_block);
     var output = setValueClose(output_value);
 }
 
@@ -397,7 +398,7 @@ function setValueClose(value){
  * @returns {*}
  */
 
-function saveFieldHTML(field,module,id,value, parent_type) {
+function saveFieldHTML(field,module,id,value, parent_type, address_block) {
     $.ajaxSetup({"async": false});
     var result = $.getJSON('index.php',
         {
@@ -409,7 +410,8 @@ function saveFieldHTML(field,module,id,value, parent_type) {
             'value': value,
             'view' : view,
             'parent_type': parent_type,
-            'to_pdf': true
+            'to_pdf': true,
+            'address_block': address_block
         }
     );
     $.ajaxSetup({"async": true});

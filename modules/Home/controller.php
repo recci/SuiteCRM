@@ -56,7 +56,17 @@ class HomeController extends SugarController{
 
         if($_REQUEST['field'] && $_REQUEST['id'] && $_REQUEST['current_module']){
 
-            echo saveField($_REQUEST['field'], $_REQUEST['id'], $_REQUEST['current_module'], $_REQUEST['value'], $_REQUEST['view']);
+            
+            if($_REQUEST['address_block'] == 'true'){
+
+                if($_REQUEST['field'] == 'billing_address_postalcode'){
+                    echo saveField($_REQUEST['field'], $_REQUEST['id'], $_REQUEST['current_module'], $_REQUEST['value'], $_REQUEST['view'], $_REQUEST['address_block']);
+                }
+            }
+            else{
+                echo saveField($_REQUEST['field'], $_REQUEST['id'], $_REQUEST['current_module'], $_REQUEST['value'], $_REQUEST['view'], $_REQUEST['address_block']);
+            }
+            
 
         }
 

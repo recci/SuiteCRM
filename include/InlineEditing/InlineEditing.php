@@ -301,7 +301,7 @@ function getEditFieldHTML($module, $fieldname, $aow_field, $view = 'EditView', $
     return json_encode($ss->fetch($file));
 }
 
-function saveField($field, $id, $module, $value)
+function saveField($field, $id, $module, $value, $address_block)
 {
 
     $bean = BeanFactory::getBean($module, $id);
@@ -322,14 +322,14 @@ function saveField($field, $id, $module, $value)
         }
 
         $bean->save();
-        return getDisplayValue($bean, $field);
+        return getDisplayValue($bean, $field, $address_block);
     } else {
         return false;
     }
 
 }
 
-function getDisplayValue($bean, $field, $method = "save")
+function getDisplayValue($bean, $field, $method = "save", $address_block)
 {
 
     if (file_exists("custom/modules/Accounts/metadata/listviewdefs.php")) {
@@ -346,12 +346,12 @@ function getDisplayValue($bean, $field, $method = "save")
         $fieldlist[$field] = array_merge($fieldlist[$field], $listViewDefs);
     }
 
-    $value = formatDisplayValue($bean, $bean->$field, $fieldlist[$field], $method);
+    $value = formatDisplayValue($bean, $bean->$field, $fieldlist[$field], $method, $address_block);
 
     return $value;
 }
 
-function formatDisplayValue($bean, $value, $vardef, $method = "save")
+function formatDisplayValue($bean, $value, $vardef, $method = "save", $address_block)
 {
 
     global $app_list_strings, $timedate;
@@ -414,6 +414,15 @@ function formatDisplayValue($bean, $value, $vardef, $method = "save")
 
     }
 
+    //if its an address block
+    if($address_block == 'true'){
+        require_once("include/generic/LayoutManager.php");
+        $layoutManager = new LayoutManager();
+    }
+
+
+
+    
     //if field is of type multienum.
     if ($vardef['type'] == "multienum") {
         $value = str_replace("^", "", $value);
